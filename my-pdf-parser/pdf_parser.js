@@ -1,15 +1,15 @@
-// testPdf.js
+// pdf_parser.js
 
 import fs from 'fs';
-import { getDocument } from 'pdfjs-dist';
+import { getDocument } from 'pdfjs-dist/build/pdf.js'; // Use non-legacy build
 
-// Path to your syllabus file on Windows (make sure the path is correct)
-const syllabusPath = "../Syllabus 341 Winter 2025_section_010_V2.pdf";
+// Path to your syllabus file on Windows (update if needed)
+const syllabusPath = "../Syllabus 341 Winter 2025_Section_010_V2.pdf";
 
 /**
  * Extracts text from a PDF file using pdf.js.
  * @param {Uint8Array|ArrayBuffer} data - The PDF file data.
- * @returns {Promise<string>} - The extracted text from the PDF.
+ * @returns {Promise<string>} - A promise that resolves to the extracted text.
  */
 async function pdfToText(data) {
   // Load the PDF document
@@ -17,19 +17,18 @@ async function pdfToText(data) {
   const pdf = await loadingTask.promise;
   let fullText = "";
 
-  // Loop through all the pages of the PDF
+  // Loop through each page
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
     let pageText = "";
     let lastBlock = null;
+    const blocks = textContent.items; // Use textContent.items
 
-    // Use textContent.items to extract text blocks
-    const blocks = textContent.items;
     for (let k = 0; k < blocks.length; k++) {
       const block = blocks[k];
       if (lastBlock !== null && lastBlock.str[lastBlock.str.length - 1] !== ' ') {
-        // Check if the current block's x-coordinate is less than the previous block's to add a newline
+        // Use the transform array to check coordinates and insert a newline if needed
         if (block.transform[4] < lastBlock.transform[4]) {
           pageText += "\r\n";
         } else if (
@@ -47,7 +46,7 @@ async function pdfToText(data) {
   return fullText;
 }
 
-// Read the PDF file into a buffer and convert it to a Uint8Array
+// Read the PDF file into a Buffer and convert it to a Uint8Array
 const dataBuffer = fs.readFileSync(syllabusPath);
 const uint8ArrayData = new Uint8Array(dataBuffer);
 

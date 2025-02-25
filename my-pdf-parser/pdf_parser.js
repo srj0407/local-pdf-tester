@@ -1,47 +1,35 @@
-// pages/api/parse-pdf.js
+// testPdf.js
 
-import formidable from 'formidable';
 import fs from 'fs';
-import path from 'path';
 import { getDocument } from 'pdfjs-dist';
 
-// Disable Next.js's default body parser so formidable can process multipart data
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+// Path to your syllabus file on Windows (make sure the path is correct)
+const syllabusPath = "../Syllabus 341 Winter 2025_section_010_V2.pdf";
 
 /**
- * Converts a PDF (provided as a Buffer or ArrayBuffer) to text using pdf.js.
- * It loops through each page and extracts the text content.
- *
- * @param {Buffer|ArrayBuffer} data - The PDF file data.
- * @returns {Promise<string>} - A promise resolving to the full extracted text.
+ * Extracts text from a PDF file using pdf.js.
+ * @param {Uint8Array|ArrayBuffer} data - The PDF file data.
+ * @returns {Promise<string>} - The extracted text from the PDF.
  */
 async function pdfToText(data) {
-  // In Node.js, data is a Buffer; convert it to Uint8Array for pdf.js.
-  const uint8ArrayData = data instanceof Buffer ? new Uint8Array(data) : data;
-  
-  // Load the document
-  const loadingTask = getDocument(uint8ArrayData);
+  // Load the PDF document
+  const loadingTask = getDocument(data);
   const pdf = await loadingTask.promise;
   let fullText = "";
 
-  // Iterate through each page
+  // Loop through all the pages of the PDF
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
     let pageText = "";
     let lastBlock = null;
 
-    // Use the updated property: textContent.items (instead of bidiTexts)
+    // Use textContent.items to extract text blocks
     const blocks = textContent.items;
     for (let k = 0; k < blocks.length; k++) {
       const block = blocks[k];
       if (lastBlock !== null && lastBlock.str[lastBlock.str.length - 1] !== ' ') {
-        // Using transform matrix to get x and y coordinates.
-        // transform[4] is the x coordinate and transform[5] is the y coordinate.
+        // Check if the current block's x-coordinate is less than the previous block's to add a newline
         if (block.transform[4] < lastBlock.transform[4]) {
           pageText += "\r\n";
         } else if (
@@ -59,51 +47,17 @@ async function pdfToText(data) {
   return fullText;
 }
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed. Use POST.' });
-    return;
-  }
+// Read the PDF file into a buffer and convert it to a Uint8Array
+const dataBuffer = fs.readFileSync(syllabusPath);
+const uint8ArrayData = new Uint8Array(dataBuffer);
 
-  // Parse the form data with formidable
-  const form = new formidable.IncomingForm();
-
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      console.error('Error parsing form:', err);
-      res.status(500).json({ error: 'Error parsing form data' });
-      return;
-    }
-
-    // Expect the file under the field name "pdf"
-    const pdfFile = files.pdf;
-    if (!pdfFile) {
-      res.status(400).json({ error: 'No PDF file uploaded' });
-      return;
-    }
-
-    try {
-      // Read the PDF file into a buffer
-      const dataBuffer = fs.readFileSync(pdfFile.path);
-      // Convert the PDF to text using our pdf.js–based function
-      const fullText = await pdfToText(dataBuffer);
-
-      // Write the output to a text file. On Vercel, use the writable /tmp directory.
-      const filePath = process.env.VERCEL
-        ? path.join('/tmp', 'output.txt')
-        : path.join(process.cwd(), 'output.txt');
-
-      fs.writeFileSync(filePath, fullText, 'utf8');
-
-      // Set headers so that the file downloads as output.txt
-      res.setHeader('Content-Type', 'text/plain');
-      res.setHeader('Content-Disposition', 'attachment; filename=output.txt');
-
-      // Send the file content as the response
-      res.status(200).send(fullText);
-    } catch (error) {
-      console.error('Error processing PDF:', error);
-      res.status(500).json({ error: 'Error processing PDF file' });
-    }
+// Run the extraction, then print and write the output to a file
+pdfToText(uint8ArrayData)
+  .then(fullText => {
+    console.log("Extracted Text:\n", fullText);
+    fs.writeFileSync("output.txt", fullText, "utf8");
+    console.log("Output written to output.txt");
+  })
+  .catch(error => {
+    console.error("Error processing PDF:", error);
   });
-}

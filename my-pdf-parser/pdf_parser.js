@@ -2,37 +2,62 @@
 
 import formidable from 'formidable';
 import fs from 'fs';
-import pdf from 'pdf-parse';
+import path from 'path';
+import { getDocument } from 'pdfjs-dist';
 
-// Disable Next.js's default body parser to handle multipart form data
+// Disable Next.js's default body parser so formidable can process multipart data
 export const config = {
   api: {
     bodyParser: false,
   },
 };
 
-// Helper function to extract professor email using regex
-const extractEmail = (text) => {
-  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-  const match = text.match(emailRegex);
-  return match ? match[0] : 'Not found';
-};
+/**
+ * Converts a PDF (provided as a Buffer or ArrayBuffer) to text using pdf.js.
+ * It loops through each page and extracts the text content.
+ *
+ * @param {Buffer|ArrayBuffer} data - The PDF file data.
+ * @returns {Promise<string>} - A promise resolving to the full extracted text.
+ */
+async function pdfToText(data) {
+  // In Node.js, data is a Buffer; convert it to Uint8Array for pdf.js.
+  const uint8ArrayData = data instanceof Buffer ? new Uint8Array(data) : data;
+  
+  // Load the document
+  const loadingTask = getDocument(uint8ArrayData);
+  const pdf = await loadingTask.promise;
+  let fullText = "";
 
-// Helper function to extract TA office hours
-const extractTAOfficeHours = (text) => {
-  // This regex looks for "TA Office Hours:" followed by any text until a newline.
-  const taRegex = /TA Office Hours:?\s*(.+)/i;
-  const match = text.match(taRegex);
-  return match ? match[1].trim() : 'Not found';
-};
+  // Iterate through each page
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    let pageText = "";
+    let lastBlock = null;
 
-// Helper function to extract grading policy details
-const extractGradingPolicy = (text) => {
-  // This regex assumes the grading policy starts with "Grading Policy:" and captures text until the next header or end-of-file.
-  const policyRegex = /Grading Policy:([\s\S]*?)(\n[A-Z][a-z]+:|\n$)/;
-  const match = text.match(policyRegex);
-  return match ? match[1].trim() : 'Not found';
-};
+    // Use the updated property: textContent.items (instead of bidiTexts)
+    const blocks = textContent.items;
+    for (let k = 0; k < blocks.length; k++) {
+      const block = blocks[k];
+      if (lastBlock !== null && lastBlock.str[lastBlock.str.length - 1] !== ' ') {
+        // Using transform matrix to get x and y coordinates.
+        // transform[4] is the x coordinate and transform[5] is the y coordinate.
+        if (block.transform[4] < lastBlock.transform[4]) {
+          pageText += "\r\n";
+        } else if (
+          lastBlock.transform[5] !== block.transform[5] &&
+          !/^\s?[a-zA-Z]$/.test(lastBlock.str)
+        ) {
+          pageText += ' ';
+        }
+      }
+      pageText += block.str;
+      lastBlock = block;
+    }
+    fullText += pageText + "\n\n";
+  }
+  return fullText;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -40,7 +65,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Use formidable to parse the incoming form with file upload
+  // Parse the form data with formidable
   const form = new formidable.IncomingForm();
 
   form.parse(req, async (err, fields, files) => {
@@ -50,7 +75,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Assuming the file is sent with the field name "pdf"
+    // Expect the file under the field name "pdf"
     const pdfFile = files.pdf;
     if (!pdfFile) {
       res.status(400).json({ error: 'No PDF file uploaded' });
@@ -58,25 +83,26 @@ export default async function handler(req, res) {
     }
 
     try {
-      // Read the uploaded PDF file into a buffer
+      // Read the PDF file into a buffer
       const dataBuffer = fs.readFileSync(pdfFile.path);
+      // Convert the PDF to text using our pdf.js–based function
+      const fullText = await pdfToText(dataBuffer);
 
-      // Extract text using pdf-parse
-      const data = await pdf(dataBuffer);
-      const text = data.text;
+      // Write the output to a text file. On Vercel, use the writable /tmp directory.
+      const filePath = process.env.VERCEL
+        ? path.join('/tmp', 'output.txt')
+        : path.join(process.cwd(), 'output.txt');
 
-      // Extract the specific pieces of information
-      const professorEmail = extractEmail(text);
-      const taOfficeHours = extractTAOfficeHours(text);
-      const gradingPolicy = extractGradingPolicy(text);
+      fs.writeFileSync(filePath, fullText, 'utf8');
 
-      // Combine the results into a text output (or JSON if preferred)
-      const outputText = `Professor Email: ${professorEmail}\nTA Office Hours: ${taOfficeHours}\nGrading Policy: ${gradingPolicy}`;
+      // Set headers so that the file downloads as output.txt
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', 'attachment; filename=output.txt');
 
-      // Respond with the extracted text
-      res.status(200).send(outputText);
-    } catch (parseError) {
-      console.error('Error parsing PDF:', parseError);
+      // Send the file content as the response
+      res.status(200).send(fullText);
+    } catch (error) {
+      console.error('Error processing PDF:', error);
       res.status(500).json({ error: 'Error processing PDF file' });
     }
   });

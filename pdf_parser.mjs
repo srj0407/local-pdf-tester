@@ -178,7 +178,9 @@ async function main() {
   // For example, if your file is in your Windows Downloads folder,
   // you can use an absolute path like "C:\\Users\\YourName\\Downloads\\Syllabus CS340 Winter 2025.pdf"
   // On Linux/Mac, adjust the path accordingly.
-  const pdfPath = path.resolve("C:/Users/YourName/Downloads/Syllabus CS340 Winter 2025.pdf");
+// Replace with your actual file path.
+// For example: "C:\\Users\\Sam\\Downloads\\Syllabus CS340 Winter 2025.pdf"
+const pdfPath = path.resolve("C:/Users/Sam/Downloads/Syllabus CS340 Winter 2025.pdf");
   
   try {
     console.log(`Processing ${pdfPath}...`);

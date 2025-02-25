@@ -1,4 +1,4 @@
-// test_pdf_parser.js
+// test_pdf_parser.mjs
 
 import fs from "fs/promises";
 import path from "path";
@@ -8,11 +8,6 @@ import Tesseract from "tesseract.js";
 
 // --- Helper Functions ---
 
-/**
- * Extracts text from a PDF using pdf-parse.
- * @param {string} pdfPath - The file path to the PDF.
- * @returns {Promise<string>} - The extracted text.
- */
 async function extractTextFromPDF(pdfPath) {
   try {
     const dataBuffer = await fs.readFile(pdfPath);
@@ -24,14 +19,8 @@ async function extractTextFromPDF(pdfPath) {
   }
 }
 
-/**
- * Converts PDF pages to images and uses OCR (Tesseract.js) to extract text.
- * @param {string} pdfPath - The file path to the PDF.
- * @returns {Promise<string>} - The OCR-extracted text.
- */
 async function extractTextWithOCR(pdfPath) {
   try {
-    // Options for pdf2pic conversion. Adjust these settings if needed.
     const options = {
       density: 400,
       saveFilename: "page",
@@ -41,12 +30,9 @@ async function extractTextWithOCR(pdfPath) {
       height: 1600,
     };
     const converter = fromPath(pdfPath, options);
-
-    // Determine the number of pages via pdf-parse.
     const dataBuffer = await fs.readFile(pdfPath);
     const parsed = await pdfParse(dataBuffer);
     const numPages = parsed.numpages;
-
     let ocrText = "";
     for (let i = 1; i <= numPages; i++) {
       const conversionResult = await converter(i);
@@ -54,7 +40,6 @@ async function extractTextWithOCR(pdfPath) {
         logger: m => console.log(`Page ${i}: ${m.status}`)
       });
       ocrText += text + "\n";
-      // Remove the temporary image file.
       await fs.unlink(conversionResult.path);
     }
     return ocrText;
@@ -64,25 +49,12 @@ async function extractTextWithOCR(pdfPath) {
   }
 }
 
-/**
- * Extracts a section from the text using a given heading.
- * @param {string} text - The complete text.
- * @param {string} sectionHeading - The heading marking the start of the section.
- * @returns {string|null} - The extracted section, or null if not found.
- */
 function extractSection(text, sectionHeading) {
   const pattern = new RegExp(`${sectionHeading}\\s*[:\\n]+\\s*(.*?)(?=\\n[A-Z][a-z]|$)`, "i");
   const match = text.match(pattern);
   return match ? match[1].trim() : null;
 }
 
-/**
- * Extracts a section using a start heading and an array of end boundaries.
- * @param {string} text - The complete text.
- * @param {string} startHeading - The heading marking the start of the section.
- * @param {string[]} endBoundaries - An array of strings that indicate the section’s end.
- * @returns {string|null} - The extracted section, or null if not found.
- */
 function extractSectionWithBoundaries(text, startHeading, endBoundaries) {
   const boundaryPattern = endBoundaries.map(b => `\\n${b}`).join("|");
   const pattern = new RegExp(`${startHeading}\\s*[:\\n]+\\s*(.*?)(?=${boundaryPattern}|$)`, "i");
@@ -90,12 +62,6 @@ function extractSectionWithBoundaries(text, startHeading, endBoundaries) {
   return match ? match[1].trim() : null;
 }
 
-/**
- * Iterates over a list of candidate headings and returns the first matching section.
- * @param {string} text - The complete text.
- * @param {string[]} possibleHeadings - Candidate headings.
- * @returns {string|null} - The extracted section, or null.
- */
 function extractSectionMultiple(text, possibleHeadings) {
   for (const heading of possibleHeadings) {
     const sectionText = extractSection(text, heading);
@@ -104,11 +70,6 @@ function extractSectionMultiple(text, possibleHeadings) {
   return null;
 }
 
-/**
- * Filters lines containing "late" or "penalty" from the text.
- * @param {string} text - The text to filter.
- * @returns {string} - Filtered lines joined by newlines.
- */
 function filterLatePolicy(text) {
   const lines = text.split("\n");
   const filtered = lines.filter(line =>
@@ -117,19 +78,11 @@ function filterLatePolicy(text) {
   return filtered.join("\n");
 }
 
-/**
- * Processes a PDF file: extracts text (using pdf-parse or OCR) and then extracts sections.
- * @param {string} pdfPath - The file path to the PDF.
- * @returns {Promise<Object>} - An object containing the extracted sections.
- */
 async function processPdf(pdfPath) {
   let pdfText = await extractTextFromPDF(pdfPath);
-  // If text extraction returns empty text or raw PDF markup, fallback to OCR.
   if (!pdfText.trim() || pdfText.trim().startsWith("%PDF")) {
     pdfText = await extractTextWithOCR(pdfPath);
   }
-
-  // Define sections to extract; adjust headings and boundaries as needed.
   const sections = {
     "Late Policy": {
       headings: ["Homework:"],
@@ -144,7 +97,6 @@ async function processPdf(pdfPath) {
       boundaries: ["Grading Scale"]
     }
   };
-
   const extractedData = {};
   for (const [section, params] of Object.entries(sections)) {
     const headings = params.headings || [];
@@ -161,35 +113,42 @@ async function processPdf(pdfPath) {
     } else {
       sectionText = extractSectionMultiple(pdfText, headings);
     }
-
     if (section === "Late Policy" && sectionText) {
       sectionText = filterLatePolicy(sectionText);
     }
     extractedData[section] = sectionText;
   }
-
   return extractedData;
 }
 
 // --- Main Testing Routine ---
 
 async function main() {
-  // Adjust the file path to point to your local PDF file.
-  // For example, if your file is in your Windows Downloads folder,
-  // you can use an absolute path like "C:\\Users\\YourName\\Downloads\\Syllabus CS340 Winter 2025.pdf"
-  // On Linux/Mac, adjust the path accordingly.
-// Replace with your actual file path.
-// For example: "C:\\Users\\Sam\\Downloads\\Syllabus CS340 Winter 2025.pdf"
-const pdfPath = path.resolve("C:/Users/Sam/Downloads/Syllabus CS340 Winter 2025.pdf");
+  // Define pdfPath first.
+  const pdfPath = path.resolve("C:/Users/Sam/Downloads/Syllabus 341 Winter 2025_Section_010_V2.pdf");
+  
+  // Now check file existence.
+  try {
+    await fs.access(pdfPath);
+    console.log("File exists:", pdfPath);
+  } catch (err) {
+    console.error("File not found:", pdfPath);
+    process.exit(1);
+  }
+  const dataBuffer = await fs.readFile(pdfPath);
+  console.log("Buffer length:", dataBuffer.length);
+  const data = await pdfParse(dataBuffer);
+  console.log("Extracted text length:", data.text.length);
+  ole.log("Buffer length:", dataBuffer.length);
   
   try {
     console.log(`Processing ${pdfPath}...`);
     const data = await processPdf(pdfPath);
-    const outputPath = pdfPath.replace(/\.pdf$/, ".txt");
+    const outputPath = pdfPath.replace(/\.pdf$/i, ".txt");
     
     let outputContent = `File: ${pdfPath}\n\n`;
     for (const [section, text] of Object.entries(data)) {
-      outputContent += `${section}:\n${text}\n\n`;
+      outputContent += `${section}:\n${text || "Not found"}\n\n`;
     }
     await fs.writeFile(outputPath, outputContent, "utf-8");
     console.log(`Output written to ${outputPath}`);

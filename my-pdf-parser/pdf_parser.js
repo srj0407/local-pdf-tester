@@ -1,9 +1,10 @@
 // pdf_parser.js
 
 import fs from 'fs';
-import { getDocument } from 'pdfjs-dist/build/pdf.js'; // Use non-legacy build
+import pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js'; // Use the legacy build
+const { getDocument } = pdfjsLib;
 
-// Path to your syllabus file on Windows (update if needed)
+// Path to your syllabus file on Windows
 const syllabusPath = "../Syllabus 341 Winter 2025_Section_010_V2.pdf";
 
 /**
@@ -12,12 +13,12 @@ const syllabusPath = "../Syllabus 341 Winter 2025_Section_010_V2.pdf";
  * @returns {Promise<string>} - A promise that resolves to the extracted text.
  */
 async function pdfToText(data) {
-  // Load the PDF document
+  // Load the PDF document using the legacy build
   const loadingTask = getDocument(data);
   const pdf = await loadingTask.promise;
   let fullText = "";
 
-  // Loop through each page
+  // Loop through each page of the PDF
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
@@ -28,7 +29,7 @@ async function pdfToText(data) {
     for (let k = 0; k < blocks.length; k++) {
       const block = blocks[k];
       if (lastBlock !== null && lastBlock.str[lastBlock.str.length - 1] !== ' ') {
-        // Use the transform array to check coordinates and insert a newline if needed
+        // Check coordinates to insert a newline or space as needed
         if (block.transform[4] < lastBlock.transform[4]) {
           pageText += "\r\n";
         } else if (

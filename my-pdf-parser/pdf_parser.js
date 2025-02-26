@@ -74,47 +74,66 @@ function extractTAOfficeHours(text) {
 }
 
 /**
- * Extracts the grading policy (or grade information) from the text.
- * For syllabi that include "Grade Weighting", it extracts only the lines that contain percentages (for weights)
- * and the grading scale lines that begin with a letter grade.
+ * Extracts the grading policy information from the text.
+ * First, it checks for a "Grade Weighting" section.
+ * Then it looks for a "grade letter" marker (case-insensitive) to locate letter grade scale lines.
+ * It extracts weight lines (those with "%") and letter scale lines (e.g., "A 94") and returns them.
  * @param {string} text - The full extracted text.
  * @returns {string} - The extracted grading policy information or a message if not found.
  */
 function extractGradingPolicy(text) {
   let idx = text.indexOf("Grade Weighting");
   if (idx !== -1) {
-    // Extract from "Grade Weighting" to "Grading Scale"
-    let idxScale = text.indexOf("Grading Scale", idx);
-    if (idxScale !== -1) {
-      const weightingBlock = text.substring(idx, idxScale);
-      const scaleBlock = text.substring(idxScale);
-      
-      // Split into lines and filter:
-      // For weighting, keep lines that contain "%" (like "Quizzes - 25%")
-      const weightingLines = weightingBlock
-        .split("\n")
-        .map(line => line.trim())
-        .filter(line => line.includes("%"));
-      
-      // For grading scale, keep lines that begin with a letter grade (e.g., "A", "A-", "B+", etc.)
-      const scaleLines = scaleBlock
-        .split("\n")
-        .map(line => line.trim())
-        .filter(line => /^[A-F][+-]?\s*\d+/.test(line));
-      
-      if (weightingLines.length === 0 && scaleLines.length === 0) {
-        return "Grading policy not found.";
+    // Extract a chunk from "Grade Weighting"
+    let chunk = text.substring(idx, idx + 1000);
+    
+    // Extract weighting lines (containing "%")
+    const weightingLines = chunk
+      .split("\n")
+      .map(line => line.trim())
+      .filter(line => line.includes("%"));
+    
+    // Now try to search for "grade letter" marker in the entire text (case-insensitive)
+    let letterIdx = text.search(/grade letter/i);
+    let letterScaleLines = [];
+    if (letterIdx !== -1) {
+      // Take a 500-character chunk from the "grade letter" marker
+      let letterChunk = text.substring(letterIdx, letterIdx + 500);
+      // Regex to match lines starting with a letter grade (A-F, optionally with '+' or '-') followed by whitespace and a number
+      const scaleRegex = /^[A-F][+-]?\s+\d+/gm;
+      let match;
+      while ((match = scaleRegex.exec(letterChunk)) !== null) {
+        letterScaleLines.push(match[0].trim());
       }
-      
-      return weightingLines.join("\n") + "\n\nGrading Scale:\n" + scaleLines.join("\n");
-    } else {
-      // If no "Grading Scale" found, return a trimmed version of the block
-      const sub = text.substring(idx);
-      return sub.split("\n").slice(0, 5).join("\n").trim();
     }
+    // If no "grade letter" marker found or no matches, try to extract from a "Grading Scale" block instead.
+    if (letterScaleLines.length === 0) {
+      let idxScale = text.indexOf("Grading Scale", idx);
+      if (idxScale !== -1) {
+        let scaleChunk = text.substring(idxScale, idxScale + 500);
+        const scaleRegex = /^[A-F][+-]?\s+\d+/gm;
+        let match;
+        while ((match = scaleRegex.exec(scaleChunk)) !== null) {
+          letterScaleLines.push(match[0].trim());
+        }
+      }
+    }
+    
+    if (weightingLines.length === 0 && letterScaleLines.length === 0) {
+      return "Grading policy not found.";
+    }
+    
+    let output = "";
+    if (weightingLines.length > 0) {
+      output += weightingLines.join("\n");
+    }
+    if (letterScaleLines.length > 0) {
+      output += "\n\nGrading Scale:\n" + letterScaleLines.join("\n");
+    }
+    return output;
   }
   
-  // Fallback: try other markers if "Grade Weighting" is not found
+  // Fallback: try other markers if "Grade Weighting" is not found.
   const markers = ["Graded Work", "Grading Policies:", "Grading Policy:", "Grading:"];
   for (const marker of markers) {
     idx = text.indexOf(marker);

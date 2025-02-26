@@ -1,98 +1,9 @@
-Last updated on January 7, 2025
-LINEAR ALGEBRA I MTH 341
-SECTION 010
-WINTER 2025
-Course Information
-• Course: MTH 341 Section 010
-• Course URL: https://canvas.oregonstate.edu/courses/1990799
-• Textbook: 1 A First Course in Linear Algebra by Ken Kuttler 
-• Course Content: – Unit 1: Chapters 1–4 from the textbook
-– Unit 2: Chapters 5 and 7 from the textbook
-• Classroom Info: Kearney Hall 212
-• Time: MWF 2:00 – 2:50 pm
-Instructor Information
-• Instructor: Amin HASSAN ZADEH
-• Office Info: Kidder 346
-• Office Hours: MWF 10:00–10:50 am or by appointment 
-• Email: hassanza@oregonstate.edu k
-Course Credits
-This linear algebra course is designed for STEM majors. As a 3-credit course, students
-are expected to attend the lectures for 3 hours per week and have 4 hours per week outside of class for studying and homework, for a total time obligation of 7 hours per week. Prerequisites
-You need to have either • a grade of C- in MTH 254 or MTH 254H, or
-• instructor’s permission. Catalog Description
-Matrix algebra, determinants, systems of linear equations, subspaces, an introductory
-study of eigenvalues and eigenvectors. MTH 341 Student Learning Outcomes 
-A successful student in MTH 341 will be able to: (1) Use Gaussian elimination to determine the solution set of a system of linear equations, and describe the solution set.
-(2) Perform matrix operations, including finding the inverse or showing no inverse exists for a square matrix.
-(3) Calculate determinants of square matrices and apply properties of determinants to draw conclusions about solution sets of linear equations and invertibility of matrices.
-1 You must first register for Lyryx Instructor Support. An announcement with instructions will be sent to
-you via Canvas on January 5, 2025. 1
+TA Office Hours: MWF 10:00–10:50 am or by appointment 
 
-2 LINEAR ALGEBRA I - SUMMER 2022 OSU
-(4) Find and use the matrix representation of a linear transformation associated to the standard basis in Euclidean space Rn.
-(5) Use the definition to determine whether a subset of Rn is a subspace.
-(6) Determine if a collection of vectors is linearly independent or dependent, and find the span of a set of vectors.
-(7) Use the rank-nullity theorem to draw conclusions about solution sets to linear systems and the invertibility status of square matrices.
-(8) Determine a basis for and the dimension of a given subspace, including the null space and column space of a matrix and the eigenspaces of square matrices. Topics Covered
-• Solving systems of linear equations by Gaussian Elimination
-• Matrix operations, conditions for invertibility
-• Determinants
-• Definition of linear transformation and its connection with matrices
-• Subspaces of Rn, linear independence, span, basis, and dimension
-• Row space, column space, null space, rank-nullity theorem
-• Eigenvalues and eigenvectors Learning Resources
-• Textbook. The textbook is your main resource for this course.
-• Office Hours. When stuck, do not hesitate to come to my office hours.
-• Internet Capable Device. You need to access Canvas, Gradescope, and some
-other internet applications on a regular basis. We will be using Canvas for much
-of our communication outside of class time. Gradescope is our required written
-assignment platform.
-• MSLC. The Mathematics and Statistics Learning Center, located in Kidder 108, is
-open for tutoring, both in person and virtually.
-• Classmates. You and your classmates are all roughly in the same spot, at least
-initially. Be sure to engage in the group activities and learn with your classmates.
-As someone taking a 300-level course, you are expected to use the above resources to fully digest the concepts. Graded Work
+Grading Policy:
 Your grade and measurement of your progress on the course outcomes will be based on
 group written assignments 2 , quizzes and final exam.
 Activity Percentage Date(s)
 Group Homework Assignments: 4 36% Jan. 17 and 31, Feb: 14 and 28
 Quizzes: 3 24% Jan: 31. Feb: 7 and 21.
 Final Exam 40% Cumulative
-Grading Scale
-B+ 88-90 C+ 78-80 D+ 68-70
-A 92+ B 82-88 C 72-78 D 62-68 F 0-59
-A- 90-92 B- 80-82 C- 70-72 D- 60-62
-2 The due dates of the group assignments are set for the Wednesdays immediately following the release
-dates, at 23:55.
-
-LINEAR ALGEBRA I - SUMMER 2022 OSU 3
-Exam Policies
-• No calculators, notes, or outside resources are allowed.
-• Make-ups are available only in exceptional circumstances. Course Policies
-• Canvas: I use Canvas to communicate with students. Important class materials,
-including assignments, points earned, and announcements of any changes to the class schedule are made on Canvas. You are expected to check Canvas regularly and are responsible to be aware of any announcements on Canvas.
-• Email: Email is the best and quickest way to reach me if you have a question or
-need to schedule an appointment. I check my ONID email frequently. You MUST
-begin any email pertaining to the class with “341-010” in the subject line. I will try to respond within 24 hours. Due to privacy concerns, I only read and respond to
-emails sent from your OSU ONID email account, and grades will not be discussed via email. Students are held accountable for checking their OSU email regularly.
-• Policy on Incompletes: An incomplete grade is given only in accordance with the
-University grade policy: https://registrar.oregonstate.edu/incomplete-grade-policy Technical Assistance
-If you experience technical (computer-based) difficulties, need help downloading a browser
-or plug-in, assistance logging into the course, or if you experience any errors or problems while in your online course, contact the OSU Help Desk for assistance. You can call (541) 737-3474, email osuhelpdesk@oregonstate.edu, or visit
-https://oregonstate.teamdynamix.com/TDClient/1935/Portal/Requests/ TicketRequests/NewForm?ID=Dr9c0T7BaSI_.
-Collaboration, Academic Honesty, and Academic Misconduct
-You are allowed, and even encouraged, to collaborate with others while doing your home-
-work. The final answer, however, should be written using your own words. Work on exams must be your own work with no assistance from any other source. During
-an exam, any attempt to obtain information by consulting the lecture notes, communicating with other students, or accessing the internet, will be considered an academic dishonesty. Any action that misrepresents a student or group’s work, knowledge, or achievement,
-provides a potential or actual inequitable advantage, or compromises the integrity of the educational process is considered academic misconduct. You are expected to be familiar with Oregon State University’s expectations for student conduct: https://beav.es/codeofconduct Reach Out for Success 
-University students encounter setbacks from time to time. If you encounter difficulties
-and need assistance, it is important to reach out. Consider discussing the situation with me, another instructor, or an academic advisor. Learn about resources that assist with wellness and academic success at https://counseling.oregonstate.edu/reach-out-success
-If you are in immediate crisis, please contact the Crisis Text Line by texting OREGON to 741-741 or call the National Suicide Prevention Lifeline at 1-800-273-TALK (8255).
-
-4 LINEAR ALGEBRA I - SUMMER 2022 OSU Religious Accommodation
-Oregon State University is required to provide reasonable accommodations for employee
-and student sincerely held religious beliefs. It is incumbent on the student making the request to make the faculty member aware of the request as soon as possible prior to the need for the accommodation. Learn more about the religious accommodation process for Students at https://eoa.oregonstate.edu/sites/eoa.oregonstate.edu/files/religious_ acccommodation_policy_for_students_1.12.2017.pdf Students With Disabilities
-Accommodations for students with disabilities are determined and approved by Disability
-Access Services (DAS). If you, as a student, believe you are eligible for accommodations but have not obtained approval, please contact DAS immediately at 541-737-4098 or at http://ds.oregonstate.edu
-DAS notifies students and faculty members of approved academic accommodations and coor- dinates implementation of those accommodations. While not required, students and faculty members are encouraged to discuss details of the implementation of individual accommoda- tions.
-

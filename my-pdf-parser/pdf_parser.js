@@ -33,8 +33,7 @@ async function pdfToText(data) {
         if (block.transform[4] < lastBlock.transform[4]) {
           pageText += "\r\n";
         } else if (
-          lastBlock.transform[5] !== block.transform[5] &&
-          !/^\s?[a-zA-Z]$/.test(lastBlock.str)
+          lastBlock.transform[5] !== block.transform[5] && !/^\s?[a-zA-Z]$/.test(lastBlock.str)
         ) {
           pageText += ' ';
         }

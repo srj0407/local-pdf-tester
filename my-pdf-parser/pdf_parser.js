@@ -74,31 +74,47 @@ function extractTAOfficeHours(text) {
 }
 
 /**
- * Extracts the grading policy from the text.
- * For CS340, if "Grade Weighting" is found, it extracts from that marker up to the end of the "Grading Scale" block.
- * Otherwise, it falls back to other markers.
+ * Extracts the grading policy (or grade information) from the text.
+ * For syllabi that include "Grade Weighting", it extracts only the lines that contain percentages (for weights)
+ * and the grading scale lines that begin with a letter grade.
  * @param {string} text - The full extracted text.
- * @returns {string} - The extracted grading policy or a message if not found.
+ * @returns {string} - The extracted grading policy information or a message if not found.
  */
 function extractGradingPolicy(text) {
   let idx = text.indexOf("Grade Weighting");
   if (idx !== -1) {
-    // Look for "Grading Scale" after "Grade Weighting"
+    // Extract from "Grade Weighting" to "Grading Scale"
     let idxScale = text.indexOf("Grading Scale", idx);
     if (idxScale !== -1) {
-      // Extract the weighting block and then the grading scale block.
-      let weightingText = text.substring(idx, idxScale).trim();
-      // Assume the grading scale block continues until a double newline.
-      let sub = text.substring(idxScale);
-      let endIdx = sub.search(/\r?\n\r?\n/);
-      if (endIdx === -1) endIdx = sub.length;
-      let scaleText = sub.substring(0, endIdx).trim();
-      return weightingText + "\n\n" + scaleText;
+      const weightingBlock = text.substring(idx, idxScale);
+      const scaleBlock = text.substring(idxScale);
+      
+      // Split into lines and filter:
+      // For weighting, keep lines that contain "%" (like "Quizzes - 25%")
+      const weightingLines = weightingBlock
+        .split("\n")
+        .map(line => line.trim())
+        .filter(line => line.includes("%"));
+      
+      // For grading scale, keep lines that begin with a letter grade (e.g., "A", "A-", "B+", etc.)
+      const scaleLines = scaleBlock
+        .split("\n")
+        .map(line => line.trim())
+        .filter(line => /^[A-F][+-]?\s*\d+/.test(line));
+      
+      if (weightingLines.length === 0 && scaleLines.length === 0) {
+        return "Grading policy not found.";
+      }
+      
+      return weightingLines.join("\n") + "\n\nGrading Scale:\n" + scaleLines.join("\n");
     } else {
-      return text.substring(idx).trim();
+      // If no "Grading Scale" found, return a trimmed version of the block
+      const sub = text.substring(idx);
+      return sub.split("\n").slice(0, 5).join("\n").trim();
     }
   }
-  // Fallback: try other markers
+  
+  // Fallback: try other markers if "Grade Weighting" is not found
   const markers = ["Graded Work", "Grading Policies:", "Grading Policy:", "Grading:"];
   for (const marker of markers) {
     idx = text.indexOf(marker);
